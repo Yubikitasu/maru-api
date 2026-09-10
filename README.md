@@ -38,7 +38,6 @@ Tạo file `.env` ở thư mục gốc:
 
 ```env
 OSU_API_KEY=your_osu_api_v1_key
-FRONTEND_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
 Không commit file `.env` lên GitHub.
