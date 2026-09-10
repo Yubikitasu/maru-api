@@ -163,7 +163,8 @@ async def getBeatmapLeaderboardAkatsuki(beatmap_id: int, modeNum: int, akatMode:
                     },
                     "user": {
                         "id": score['user_id'],
-                        "name": score['user']['username']
+                        "name": score['user']['username'],
+                        "userAvatar": f"https://a.akatsuki.gg/{score['user_id']}",
                     },
                     "mods": {
                         "name": id_to_mods(int(score['mods'])),

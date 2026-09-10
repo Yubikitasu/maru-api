@@ -129,7 +129,8 @@ async def getBeatmapLeaderboardBancho(beatmap_id: int, mode: str):
                 },
                 "user": {
                 "id": score['user_id'],
-                "name": score['username']
+                "name": score['username'],
+                "userAvatar": f"https://a.ppy.sh/{score['user_id']}"
                 },
                 "mods": {
                 "name": id_to_mods(int(score['enabled_mods'])),
