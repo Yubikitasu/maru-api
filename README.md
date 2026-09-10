@@ -11,7 +11,11 @@ API nhỏ xây dựng bằng FastAPI để lấy thông tin người chơi, best
 ## Cài đặt
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/Yubikitasu/maru-api
+=======
+git clone https://github.com/Yubikitasu/maru-api/
+>>>>>>> 083e475729d23c3ac537d9757257c70d1921c322
 cd osuAPI
 python -m venv .venv
 ```
