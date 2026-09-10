@@ -1,6 +1,6 @@
 # osu! API
 
-API nhỏ xây dựng bằng FastAPI để lấy thông tin người chơi, best scores, leaderboard beatmap và màu chủ đạo từ avatar osu! Hỗ trợ dữ liệu từ osu! Bancho và Akatsuki.
+API nhỏ xây dựng bằng FastAPI để lấy thông tin người chơi, best scores, leaderboard beatmap và màu chủ đạo từ avatar osu! Hỗ trợ dữ liệu từ osu! Bancho và Akatsuki, sử dụng cho Maru Overlay.
 
 ## Yêu cầu
 
@@ -11,7 +11,7 @@ API nhỏ xây dựng bằng FastAPI để lấy thông tin người chơi, best
 ## Cài đặt
 
 ```bash
-git clone <URL_REPOSITORY>
+git clone https://github.com/Yubikitasu/maru-api
 cd osuAPI
 python -m venv .venv
 ```
@@ -51,7 +51,6 @@ python run.py
 API chạy tại `http://127.0.0.1:8000`. Tài liệu tương tác:
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
-- ReDoc: `http://127.0.0.1:8000/redoc`
 
 ## Endpoint chính
 
@@ -94,4 +93,4 @@ Hoặc import repository từ GitHub vào Vercel rồi thêm các biến môi tr
 
 ## Giấy phép và nguồn dữ liệu
 
-Project sử dụng dữ liệu từ osu! Bancho API, Akatsuki API và avatar CDN tương ứng. Hãy tuân thủ điều khoản sử dụng của các dịch vụ này.
+Project sử dụng dữ liệu từ osu! Bancho API, Akatsuki API và avatar CDN tương ứng. Hãy tuân thủ điều khoản sử dụng của các dịch vụ này. :tf:
