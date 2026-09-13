@@ -106,7 +106,6 @@ async def getBeatmapLeaderboardBancho(beatmap_id: int, mode: str):
         "k": OSU_API_KEY,
         "b": beatmap_id, # The beatmap ID (not the beatmapset ID)
         "m": modeNum,       # Game mode
-        "c": "VN",
         "limit": 50      # Request exactly 50 scores
     }
     
