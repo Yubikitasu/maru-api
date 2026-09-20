@@ -11,7 +11,7 @@ async def getUserBancho(username: str, modeNum: int):
     params = {
         "k": OSU_API_KEY,
         "u": username,
-        "type": "id" if username.isdigit() else "string",
+        "type": "string",
         "m": modeNum 
     }
 
