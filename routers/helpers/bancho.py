@@ -9,7 +9,11 @@ OSU_CLIENT_ID = int(os.getenv("OSU_CLIENT_ID", 0))
 OSU_CLIENT_SECRET = os.getenv("OSU_CLIENT_SECRET", "")
 OSU_API_KEY = os.getenv("OSU_API_KEY")
 
-api = Ossapi(OSU_CLIENT_ID, OSU_CLIENT_SECRET)
+api = Ossapi(
+    OSU_CLIENT_ID,
+    OSU_CLIENT_SECRET,
+    token_directory=os.getenv("OSSAPI_TOKEN_DIRECTORY", "/tmp"),
+)
 
 def mods_to_legacy_id(mods_list) -> int:
     """Chuyển đổi danh sách mods của API v2 thành số nguyên legacy bitwise"""
