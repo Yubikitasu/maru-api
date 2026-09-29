@@ -50,7 +50,7 @@ async def get_user_stats(username: str, gameMode: str, server: str | None = None
             akatModeNum = 2
         user_data = await getUserAkatsuki(username, modeNum, akatModeNum)
     else:
-        user_data = await getUserBancho(username, modeNum)
+        user_data = getUserBancho(username, modeNum)
     return user_data
 
 @router.get("/{user_id}/best/{gameMode}")
@@ -66,7 +66,7 @@ async def get_user_best_scores(user_id: str, gameMode: str, server: str | None =
             akatModeNum = 2
         result = await getUserBestScoresAkatsuki(user_id, modeNum, akatModeNum)
     else:
-        result = await getUserBestScoresBancho(user_id, modeNum)
+        result = getUserBestScoresBancho(user_id, modeNum)
     return result
 
 # Just an example Pydantic model for a POST request

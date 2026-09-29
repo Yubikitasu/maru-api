@@ -5,3 +5,4 @@ httpx
 requests
 colorthief
 country-converter
+ossapi

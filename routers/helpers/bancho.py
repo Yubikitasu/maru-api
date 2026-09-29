@@ -1,99 +1,109 @@
 import os
-import httpx
 from fastapi import HTTPException
+import httpx
 import country_converter as coco
 from routers.helpers.calculation import calculate_accuracy, id_to_mods
+from ossapi import Ossapi, GameMode, ScoreType
 
+OSU_CLIENT_ID = int(os.getenv("OSU_CLIENT_ID", 0))
+OSU_CLIENT_SECRET = os.getenv("OSU_CLIENT_SECRET", "")
 OSU_API_KEY = os.getenv("OSU_API_KEY")
 
-async def getUserBancho(username: str, modeNum: int):
-    url = "https://osu.ppy.sh/api/get_user"
-    params = {
-        "k": OSU_API_KEY,
-        "u": username,
-        "type": "string",
-        "m": modeNum 
-    }
+api = Ossapi(OSU_CLIENT_ID, OSU_CLIENT_SECRET)
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=params)
+def mods_to_legacy_id(mods_list) -> int:
+    """Chuyển đổi danh sách mods của API v2 thành số nguyên legacy bitwise"""
+    if not mods_list:
+        return 0
         
-    if response.status_code != 200:
-        raise HTTPException(status_code=502, detail="Failed to connect to osu! API")
+    # Phòng hờ trường hợp dùng bản ossapi cũ trả về Enum
+    if hasattr(mods_list, 'value'):
+        return mods_list.value
 
-    user_data = response.json()
-    if not user_data:
+    # Bảng mapping chuẩn của osu! legacy bitwise mods
+    MODS_MAP = {
+        "NF": 1, "EZ": 2, "TD": 4, "HD": 8, "HR": 16, "SD": 32, "DT": 64,
+        "RX": 128, "HT": 256, "NC": 512 | 64, "FL": 1024, "AT": 2048,
+        "SO": 4096, "AP": 8192, "PF": 16384 | 32, "4K": 32768, "5K": 65536,
+        "6K": 131072, "7K": 262144, "8K": 524288, "FI": 1048576, "RD": 2097152,
+        "LM": 4194304, "9K": 16777216, "10K": 33554432, "1K": 67108864,
+        "3K": 134217728, "2K": 268435456, "V2": 536870912, "MR": 1073741824
+    }
+    
+    legacy_id = 0
+    if isinstance(mods_list, list):
+        for mod in mods_list:
+            # ossapi mới trả về object có thuộc tính 'acronym'
+            acronym = mod.acronym if hasattr(mod, 'acronym') else str(mod)
+            legacy_id |= MODS_MAP.get(acronym.upper(), 0)
+            
+    return legacy_id
+
+def getUserBancho(username: str, modeNum: int):
+    try:
+        mode = GameMode(modeNum)
+    except ValueError:
+        mode = GameMode.OSU
+
+    try:
+        user = api.user(username, mode=mode)
+    except Exception:
         raise HTTPException(status_code=404, detail="User not found")
-    # Default to osu! mode
+        
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     data = {
-    "id": user_data[0]['user_id'],
-    "userAvatar": f"https://a.ppy.sh/{user_data[0]['user_id']}",
+        "id": user.id,
+        "userAvatar": user.avatar_url,
         "statistics": {
-        "global_rank": user_data[0]['pp_rank'],
-        "pp": user_data[0]['pp_raw'],
-        "country_rank": user_data[0]['pp_country_rank'],
+            "global_rank": user.statistics.global_rank if user.statistics else None,
+            "pp": user.statistics.pp if user.statistics else None,
+            "country_rank": user.statistics.country_rank if user.statistics else None,
         },
-        "country_code": user_data[0]['country'],
+        "country_code": user.country.code,
         "country": {
-            "code": user_data[0]['country'],
-            "name": coco.convert(names=user_data[0]['country'], to='name'),
+            "code": user.country.code,
+            "name": coco.convert(names=user.country.code, to='name'),
         }
     }
     return data
 
-async def getUserBestScoresBancho(user_id: str, modeNum: int):
-    url = "https://osu.ppy.sh/api/get_user_best"
-    # Note: "type": "id" means user_id must be their number ID, not their username text
-    params = {"k": OSU_API_KEY, "u": user_id, "type": "id", "limit": 5, "m": modeNum}
+def getUserBestScoresBancho(user_id: str, modeNum: int):
+    try:
+        mode = GameMode(modeNum)
+    except ValueError:
+        mode = GameMode.OSU
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, params=params)
-    
-    # Always check if the API actually responded successfully
-    if response.status_code != 200:
+    try:
+        best_scores = api.user_scores(user_id, type=ScoreType.BEST, mode=mode, limit=5)
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to connect to osu! API")
-        
-    bestPlaysData = response.json()
 
-    # Check for empty data BEFORE trying to loop through it
-    if not bestPlaysData:
+    if not best_scores:
         raise HTTPException(status_code=404, detail="User not found or no best scores available")
 
-
     result = []
-    # Fetch beatmap metadata and return the nested shape expected by index.js.
-    async with httpx.AsyncClient() as client:
-        for play in bestPlaysData:
-            beatmap_url = "https://osu.ppy.sh/api/get_beatmaps"
-            beatmap_params = {"k": OSU_API_KEY, "b": play['beatmap_id']}
-            beatmap_response = await client.get(beatmap_url, params=beatmap_params)
-            beatmap_data = beatmap_response.json()
-
-            if not beatmap_data:
-                continue
-
-            beatmap = beatmap_data[0]
-            beatmapset_id = beatmap['beatmapset_id']
-            result.append({
-                "pp": float(play['pp']),
-                "ended_at": play['date'],
-                "rank": play['rank'] or "",
-                "mods_id": play.get('enabled_mods', ''),
-                "legacy_score_id": play.get('score_id'),
-                "beatmap": {
-                    "id": beatmap['beatmap_id'],
-                    "beatmapset_id": beatmapset_id,
+    for play in best_scores:
+        result.append({
+            "pp": float(play.pp) if play.pp is not None else 0.0,
+            "ended_at": play.ended_at.isoformat() if play.ended_at else "",
+            "rank": play.rank.value if play.rank else "",
+            "mods_id": mods_to_legacy_id(play.mods),
+            "legacy_score_id": play.best_id or play.id,
+            "beatmap": {
+                "id": play.beatmap.id,
+                "beatmapset_id": play.beatmap.beatmapset_id,
+            },
+            "beatmapset": {
+                "title": play.beatmapset.title,
+                "covers": {
+                    "cover": play.beatmapset.covers.cover
                 },
-                "beatmapset": {
-                    "title": beatmap['title'],
-                    "covers": {
-                        "cover": f"https://assets.ppy.sh/beatmaps/{beatmapset_id}/covers/cover.jpg"
-                    },
-                },
-            })
+            },
+        })
 
     return result
-
 
 async def getBeatmapLeaderboardBancho(beatmap_id: int, mode: str):
     if mode == "mania":
