@@ -50,7 +50,7 @@ def getUserBancho(username: str, modeNum: int):
         mode = GameMode.OSU
 
     try:
-        user = api.user(username, mode=mode)
+        user = api.user(username, mode=mode, key="username")
     except Exception:
         raise HTTPException(status_code=404, detail="User not found")
         
