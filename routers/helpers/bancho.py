@@ -68,7 +68,7 @@ def getUserBancho(username: str, modeNum: int):
         "country_code": user.country.code,
         "country": {
             "code": user.country.code,
-            "name": coco.convert(names=user.country.code, to='name'),
+            "name": user.country.name,
         }
     }
     return data
@@ -80,7 +80,7 @@ def getUserBestScoresBancho(user_id: str, modeNum: int):
         mode = GameMode.OSU
 
     try:
-        best_scores = api.user_scores(user_id, type=ScoreType.BEST, mode=mode)
+        best_scores = api.user_scores(user_id, type=ScoreType.BEST, mode=mode, limit=200)
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to connect to osu! API")
 
