@@ -12,7 +12,8 @@ OSU_API_KEY = os.getenv("OSU_API_KEY")
 api = Ossapi(
     OSU_CLIENT_ID,
     OSU_CLIENT_SECRET,
-    token_directory=os.getenv("OSSAPI_TOKEN_DIRECTORY", "/tmp"),
+    # if in production, else remove this line to use default token directory
+    token_directory=os.getenv("OSSAPI_TOKEN_DIRECTORY", "/tmp") if os.getenv("ENVIRONMENT") == "production" else None,
 )
 
 def mods_to_legacy_id(mods_list) -> int:
@@ -105,6 +106,15 @@ def getUserBestScoresBancho(user_id: str, modeNum: int):
                     "cover": play.beatmapset.covers.cover
                 },
             },
+            "score_info": {
+                # "score": play.score,
+                "max_combo": play.max_combo,
+                "accuracy": play.accuracy,
+                "n_300": play.statistics.great,
+                "n_100": play.statistics.ok,
+                "n_50": play.statistics.meh,
+                "n_miss": play.statistics.miss,
+            }
         })
 
     return result
