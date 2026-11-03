@@ -35,7 +35,6 @@ class BanchoLazer:
         db.collection("users").document(str(user_id)).set({
             "id": user_data.id,
             "name": user_data.username,
-            "userAvatar": user_data.avatar_url,
             "date_inserted": datetime.datetime.now(datetime.timezone.utc)
         })
 
@@ -45,7 +44,6 @@ class BanchoLazer:
             return {
                 "id": user_data.id,
                 "name": user_data.username,
-                "userAvatar": user_data.avatar_url,
                 "date_inserted": datetime.datetime.now(datetime.timezone.utc)
             }
 
@@ -119,7 +117,6 @@ class BanchoLazer:
                 compact_users.append({
                     "id": score.user_id,
                     "name": username,
-                    "userAvatar": getattr(user, "avatar_url", None),
                     "date_inserted": datetime.datetime.now(datetime.timezone.utc),
                 })
 
