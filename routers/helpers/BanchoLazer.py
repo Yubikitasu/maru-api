@@ -1,7 +1,7 @@
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore
-from ossapi import GameMode, Ossapi
+from ossapi import GameMode, Mod, Ossapi, RankingType
 
 from routers.helpers.bancho import mods_to_legacy_id
 from routers.helpers.calculation import id_to_mods
@@ -9,12 +9,16 @@ from routers.helpers.calculation import id_to_mods
 OSU_CLIENT_ID = int(os.getenv("OSU_CLIENT_ID", 0))
 OSU_CLIENT_SECRET = os.getenv("OSU_CLIENT_SECRET", "")
 token_directory=os.getenv("OSSAPI_TOKEN_DIRECTORY", "/tmp") if os.getenv("ENVIRONMENT") == "production" else None
+
 api = Ossapi(
         OSU_CLIENT_ID,
         OSU_CLIENT_SECRET,
         # if in production, else remove this line to use default token directory
-        token_directory=token_directory
+        token_directory=token_directory,
     )
+
+print("OSU_CLIENT_ID:", OSU_CLIENT_ID)
+print("OSU_CLIENT_SECRET:", OSU_CLIENT_SECRET)
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
@@ -68,12 +72,12 @@ class BanchoLazer:
 
         return users
 
-    def getBeatmapLeaderboardBanchoLazer(self, beatmap_id: int, modeNum: int):
+    def getBeatmapLeaderboardBanchoLazer(self, beatmap_id: int, modeNum: int, mods: list[Mod] | None = None, legacy_only: bool = False):
         try:
             mode = GameMode(modeNum)
         except ValueError:
             mode = GameMode.OSU
-        leaderboard = api.beatmap_scores(beatmap_id, mode=mode, limit=50).scores
+        leaderboard = api.beatmap_scores(beatmap_id, mode=mode, limit=50, mods=mods, legacy_only=legacy_only).scores
 
         list_user_id = [score.user_id for score in leaderboard]
         users = self.get_users(list_user_id)
@@ -96,8 +100,8 @@ class BanchoLazer:
                                 "userAvatar": f'https://a.ppy.sh/{score.user_id}',
                             },
                             "mods": {
-                            "name": ''.join(mod.acronym for mod in score.mods),
-                            "id":  mods_to_legacy_id(''.join(mod.acronym for mod in score.mods)),
+                                "name": ''.join(mod.acronym for mod in score.mods),
+                                "id":  mods_to_legacy_id(''.join(mod.acronym for mod in score.mods)),
                             }
                         }
         
