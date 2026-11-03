@@ -32,3 +32,5 @@ dist/
 .DS_Store
 Thumbs.db.vercel
 .env*
+
+serviceAccountKey.json

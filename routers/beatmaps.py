@@ -4,6 +4,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from routers.helpers.akatsuki import getBeatmapLeaderboardAkatsuki
 from routers.helpers.bancho import getBeatmapLeaderboardBancho
+from routers.helpers.BanchoLazer import BanchoLazer
 # from routers.helpers.calculation import calculate_accuracy, id_to_mods
 
 router = APIRouter(prefix="/beatmaps", tags=["Beatmap Endpoints"])
@@ -33,7 +34,7 @@ async def get_beatmap_info(beatmap_id: int):
 # Mẫu: https://{BASEURL}/beatmaps/12059810/mania
 # Mẫu: https://{BASEURL}/beatmaps/12059810/global
 @router.get("/{beatmap_id}/{mode}")
-async def get_beatmap_scores(beatmap_id: int, mode: str, server: str | None = None, server_mods: str | None = None):
+async def get_beatmap_scores(beatmap_id: int, mode: str, server: str | None = None, server_mods: str | None = None, lazer: str | None = None):
     if server == "akatsuki":
         modeNum = 0
         if mode == "mania":
@@ -45,5 +46,11 @@ async def get_beatmap_scores(beatmap_id: int, mode: str, server: str | None = No
             akatMode = 2
         data = await getBeatmapLeaderboardAkatsuki(beatmap_id, modeNum, akatMode)
     else:
-        data = await getBeatmapLeaderboardBancho(beatmap_id, mode)
+        banchoLazer = BanchoLazer()
+        # banchoLazer.get_users([16616672, 7562902, 14715160])  # Example usage of BanchoLazer class
+        # data = await getBeatmapLeaderboardBancho(beatmap_id, mode)
+        if lazer == "true":
+            data = banchoLazer.getBeatmapLeaderboardBanchoLazer(beatmap_id, mode)
+        else:
+            data = await getBeatmapLeaderboardBancho(beatmap_id, mode)
     return data
