@@ -2,6 +2,7 @@
 import os
 import httpx
 from fastapi import APIRouter, HTTPException
+from starlette.concurrency import run_in_threadpool
 from routers.helpers.akatsuki import getBeatmapLeaderboardAkatsuki
 from routers.helpers.bancho import getBeatmapLeaderboardBancho
 from routers.helpers.BanchoLazer import BanchoLazer
@@ -50,7 +51,11 @@ async def get_beatmap_scores(beatmap_id: int, mode: str, server: str | None = No
         # banchoLazer.get_users([16616672, 7562902, 14715160])  # Example usage of BanchoLazer class
         # data = await getBeatmapLeaderboardBancho(beatmap_id, mode)
         if lazer == "true":
-            data = banchoLazer.getBeatmapLeaderboardBanchoLazer(beatmap_id, mode)
+            data = await run_in_threadpool(
+                banchoLazer.getBeatmapLeaderboardBanchoLazer,
+                beatmap_id,
+                mode,
+            )
         else:
             data = await getBeatmapLeaderboardBancho(beatmap_id, mode)
     return data
